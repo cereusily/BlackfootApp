@@ -1,0 +1,5 @@
+town
+restaurant
+people
+greetings
+home
