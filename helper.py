@@ -6,6 +6,7 @@ import wave
 import random
 import cmpt120image
 import pygame
+import time
 
 
 def concat(infiles, outfile):
@@ -29,10 +30,45 @@ def concat(infiles, outfile):
     output.close()
 
 
+def show_vocab():
+    """
+    input: none
+    output: returns all vocab in a list of dictionaries
+    """
+    # Opens file and formats the naming
+    filename = open("data/data_files.txt")
+    files = [line.strip("\n") for line in filename]
+
+    # Create dictionary for each vocab file and store them in a list
+    all_vocab = [create_dict(f"data/{file}.txt") for file in files]
+
+    # Prints out vocab dictionary from create vocab function
+    print("Here are the all the words available!\n")
+    for vocab in all_vocab:
+        for blackfoot, eng in vocab.items():
+            print(f"{blackfoot} - {eng}")
+
+    return all_vocab
+
+
+def create_sentence():
+    user_words = []
+    all_vocab = show_vocab()
+
+    print("\nGive me two vocab in english, and I will format"
+          " them into a Blackfoot sentence!\n")
+
+    for x in range(2):
+        user_word = input("Give me a word in english!\n")
+        user_words.append(user_word)
+
+    concat([f"sounds/{i.strip('?!,.').replace(' ', '_')}.wav" for i in user_words], [])
+
+
 def create_dict(txt_file):
     """
-    input: a text file containing translations
-    output: a formatted dictionary Blackfoot : English
+    input: a text file containing string data
+    output: a formatted dictionary
     """
     # Initializes and creates dictionary
     vocab = {}
@@ -108,12 +144,81 @@ def test(vocab):
     return num_correct
 
 
+def custom_testing(vocab):
+    """
+    input: dictionary of vocab, Blackfoot : English
+    output: user score
+    """
+    print("Okay, here's a harder test. Get ready!\n")
+
+    # Keeps track of number correct
+    num_correct = 0
+
+    # Reverses order to English to Blackfoot for word generation
+    vocab_two = {value: key for key, value in vocab.items()}
+
+    # Asks 10 questions
+    for x in range(10):
+
+        # Generates random english word
+        english_word = random.choice(list(vocab_two.keys()))
+
+        # Gets correct word and initializes incorrect word
+        correct_word = vocab_two[english_word]
+
+        # Loops to ensure incorrect word is not correct word
+        while True:
+            incorrect_eng_word = random.choice(list(vocab_two.keys()))
+            incorrect_word = vocab_two[incorrect_eng_word]
+
+            if incorrect_word != correct_word:
+                break
+
+        # Stores word choices
+        words = [correct_word, incorrect_word]
+
+        # Generates the first random choice
+        choice_one = random.choice(words)
+
+        # Generates the second random choice that isn't choice one
+        while True:
+            choice_two = random.choice(words)
+            if choice_two != choice_one:
+                break
+
+        # Plays the sound of words
+        play_sound(vocab[choice_one])
+        time.sleep(1.5)    # Gives speaker time to speak
+        play_sound(vocab[choice_two])
+
+        # asks user vocab
+        user_word = input(f"What is '{english_word.lower()}' in Blackfoot?\n"
+                          f"{choice_one.title()} or {choice_two.title()}\n").strip().lower()
+
+        # Tells user if they are correct / incorrect
+        if user_word == correct_word.lower():
+            print("You got it!\n")
+            num_correct += 1
+        else:
+            print("Sorry, that isn't correct.\n")
+
+    # Gives user message depending on score
+    if num_correct == 10:
+        input("Wow! You got 10/10! A perfect score! Press <enter>\n")
+    elif num_correct == 0:
+        input("Unfortunately, you didn't get any right. Press <enter>\n")
+    else:
+        input(f"You got {num_correct}/10! Press <enter>\n")
+
+    return num_correct
+
+
 def move(scene, user_scene):
     """
     input: current user scene (index) of scene array
     output: new user scene (index) of scene array
     """
-    # Maps out scene relative to index
+    # Maps out scene relative to index into dictionary
     scene_map = dict(zip(scene, range(0, len(scene))))
 
     # Formats list of scenes into string
@@ -148,9 +253,43 @@ def play_sound(word):
     input: a word passed in from a function
     output: none (plays a sound)
     """
-    word = word.replace(" ", "_")  # Formats for .wav files
+    word = word.replace(" ", "_").lower().strip("?!,")  # Formats for .wav files
     word_sound = pygame.mixer.Sound(f"sounds/{word}.wav")  # Initializes file
     pygame.mixer.Sound.play(word_sound)  # Plays file
+
+
+def update_score(new_score, scene, user_scene, scene_scores):
+    """
+    input: variables to update scene scores value
+    output: updated scene scores value
+    """
+    top_score = scene_scores[scene[user_scene]]
+
+    # If new score is greater; replace top score
+    if new_score > top_score:
+        scene_scores[scene[user_scene]] = new_score
+    else:
+        pass
+
+
+def display_score(scene_scores, hard_scene_scores):
+    """
+    input: Dictionary containing scene scores
+    output: none (prints score)
+    """
+    # Prints out standard test leaderboard from dictionary
+    print("\n**********************")
+    print("Test Leaderboard")
+    for scene, score in scene_scores.items():
+        print(f"{scene.title()} - {score}/10")
+    print("**********************\n")
+
+    # Prints out harder test leaderboard from dictionary
+    print("\n**********************")
+    print("Hard Test Leaderboard")
+    for scene, score in hard_scene_scores.items():
+        print(f"{scene.title()} - {score}/10")
+    print("**********************\n")
 
 
 # Initializes pygame
