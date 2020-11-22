@@ -30,39 +30,67 @@ def concat(infiles, outfile):
     output.close()
 
 
-def show_vocab():
+def show_vocab(all_vocab):
     """
-    input: none
-    output: returns all vocab in a list of dictionaries
+    input: list of dictionaries containing all vocab
+    output: none (displays all vocab)
+    """
+    # Prints out vocab dictionary from create vocab function
+    print("Here are the all the words available!\n")
+    for vocab in all_vocab:
+        for blackfoot, eng in vocab.items():
+            print(f"{blackfoot.title()} - {eng}")
+
+
+def create_all_vocab():
+    """
+       input: none
+       output: returns all vocab in a list of dictionaries
     """
     # Opens file and formats the naming
     filename = open("data/data_files.txt")
     files = [line.strip("\n") for line in filename]
 
     # Create dictionary for each vocab file and store them in a list
-    all_vocab = [create_dict(f"data/{file}.txt") for file in files]
-
-    # Prints out vocab dictionary from create vocab function
-    print("Here are the all the words available!\n")
-    for vocab in all_vocab:
-        for blackfoot, eng in vocab.items():
-            print(f"{blackfoot} - {eng}")
+    all_vocab = [create_dict(f"data/vocab/{file}.txt") for file in files]
 
     return all_vocab
 
 
 def create_sentence():
+    prepositions = [
+        'a',
+        'an',
+        'the',
+        'to'
+    ]
     user_words = []
-    all_vocab = show_vocab()
+    all_vocab = create_all_vocab()
+
+    show_vocab(all_vocab)
+    
 
     print("\nGive me two vocab in english, and I will format"
           " them into a Blackfoot sentence!\n")
 
-    for x in range(2):
-        user_word = input("Give me a word in english!\n")
-        user_words.append(user_word)
+    user_sentence = input("Give me a sentence and I will translate it"
+                          " into Blackfoot.\n")
 
-    concat([f"sounds/{i.strip('?!,.').replace(' ', '_')}.wav" for i in user_words], [])
+    user_sentence = user_sentence.split(' ')
+
+    user_sentence = [i for i in user_sentence if i not in prepositions]
+
+    print(user_sentence)
+
+    # for x in range(2):
+    #     user_word = input("Give me a vocab in english!\n").lower()
+    #     user_words.append(user_word)
+    #
+    # copy_words = "_".join([i.replace(" ", "_") for i in user_words.copy()])
+    # user_words = ['sounds/' + i.lower().replace(" ", "_") + '.wav' for i in user_words]
+    #
+    # concat(user_words, f"sentence/{copy_words}.wav")
+    # play_sound(copy_words, 'sentence')
 
 
 def create_dict(txt_file):
@@ -98,7 +126,7 @@ def learn(vocab):
 
         # Check is user word is valid in vocab // checks for user quit
         if user_word in vocab:
-            play_sound(user_word)  # Plays word from sounds
+            play_sound(user_word, 'sounds')  # Plays word from sounds
             print(vocab[user_word].title())
 
         elif user_word == "done":
@@ -122,7 +150,7 @@ def test(vocab):
     # Asks ten questions
     for x in range(10):
         test_word = random.choice(list(vocab.keys()))  # retrieves random word from vocab
-        play_sound(vocab[test_word])  # Plays sound of the word
+        play_sound(vocab[test_word], 'sounds')  # Plays sound of the word
 
         user_word = input(f"What is {test_word.lower()}?\n").strip()  # asks user vocab
 
@@ -187,9 +215,9 @@ def custom_testing(vocab):
                 break
 
         # Plays the sound of words
-        play_sound(vocab[choice_one])
-        time.sleep(1.5)    # Gives speaker time to speak
-        play_sound(vocab[choice_two])
+        play_sound(vocab[choice_one], 'sounds')
+        time.sleep(1.5)  # Gives speaker time to speak
+        play_sound(vocab[choice_two], 'sounds')
 
         # asks user vocab
         user_word = input(f"What is '{english_word.lower()}' in Blackfoot?\n"
@@ -248,13 +276,13 @@ def move(scene, user_scene):
     return user_scene
 
 
-def play_sound(word):
+def play_sound(word, folder):
     """
     input: a word passed in from a function
     output: none (plays a sound)
     """
     word = word.replace(" ", "_").lower().strip("?!,")  # Formats for .wav files
-    word_sound = pygame.mixer.Sound(f"sounds/{word}.wav")  # Initializes file
+    word_sound = pygame.mixer.Sound(f"{folder}/{word}.wav")  # Initializes file
     pygame.mixer.Sound.play(word_sound)  # Plays file
 
 

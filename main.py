@@ -21,6 +21,9 @@ cmpt120image.showImage(img, scene[user_scene])
 print("Oki (Hello)! Welcome to Brocket, Alberta! I can teach you some Blackfoot\n"
       "while you are here!")
 
+
+helper.create_sentence()
+
 # Main loop
 active = True
 while active:
@@ -35,14 +38,14 @@ while active:
                      "or leave? (exit)?\n")
 
     if app_mode.lower().strip() == "learn":
-        helper.learn(helper.create_dict(f"data/{scene[user_scene]}.txt"))
+        helper.learn(helper.create_dict(f"data/vocab/{scene[user_scene]}.txt"))
 
     elif app_mode.lower().strip() == "test":
-        new_score = helper.test(helper.create_dict(f"data/{scene[user_scene]}.txt"))
+        new_score = helper.test(helper.create_dict(f"data/vocab/{scene[user_scene]}.txt"))
         helper.update_score(new_score, scene, user_scene, scene_scores)
 
     elif app_mode.lower().strip() == "hard test":
-        new_score = helper.custom_testing(helper.create_dict(f"data/{scene[user_scene]}.txt"))
+        new_score = helper.custom_testing(helper.create_dict(f"data/vocab/{scene[user_scene]}.txt"))
         helper.update_score(new_score, scene, user_scene, hard_scene_scores)
 
     elif app_mode.lower().strip() == "scores":
