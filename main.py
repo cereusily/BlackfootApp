@@ -21,9 +21,6 @@ cmpt120image.showImage(img, scene[user_scene])
 print("Oki (Hello)! Welcome to Brocket, Alberta! I can teach you some Blackfoot\n"
       "while you are here!")
 
-
-helper.create_sentence()
-
 # Main loop
 active = True
 while active:

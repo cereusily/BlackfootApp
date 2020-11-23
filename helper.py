@@ -37,9 +37,9 @@ def show_vocab(all_vocab):
     """
     # Prints out vocab dictionary from create vocab function
     print("Here are the all the words available!\n")
-    for vocab in all_vocab:
-        for blackfoot, eng in vocab.items():
-            print(f"{blackfoot.title()} - {eng}")
+
+    for blackfoot, eng in all_vocab.items():
+        print(f"{blackfoot.capitalize()} - {eng.capitalize()}")
 
 
 def create_all_vocab():
@@ -54,43 +54,89 @@ def create_all_vocab():
     # Create dictionary for each vocab file and store them in a list
     all_vocab = [create_dict(f"data/vocab/{file}.txt") for file in files]
 
+    all_vocab = {k: v for i in all_vocab for k, v in i.items()}
+
     return all_vocab
 
 
-def create_sentence():
+def helper_create_sentence(user_sentence, all_vocab):
+    """
+    input: user inputs a sentence in english
+    output: none (creates and plays the sound)
+    """
+    # Stores prepositions
     prepositions = [
         'a',
         'an',
         'the',
-        'to'
+        'to',
+        'at',
+        'that',
+        'for'
     ]
-    user_words = []
-    all_vocab = create_all_vocab()
 
-    show_vocab(all_vocab)
-    
+    # Reverses order to English to Blackfoot
+    all_vocab = {value: key for key, value in all_vocab.items()}
 
-    print("\nGive me two vocab in english, and I will format"
-          " them into a Blackfoot sentence!\n")
-
-    user_sentence = input("Give me a sentence and I will translate it"
-                          " into Blackfoot.\n")
-
-    user_sentence = user_sentence.split(' ')
-
+    # Removes prepositions from sentence
     user_sentence = [i for i in user_sentence if i not in prepositions]
 
-    print(user_sentence)
+    # Formats multi-word vocab in user sentence
+    string = ''
+    for word in user_sentence:
+        if word not in all_vocab and string not in all_vocab:
+            string += word + ' '
+    string = string.strip()
 
-    # for x in range(2):
-    #     user_word = input("Give me a vocab in english!\n").lower()
-    #     user_words.append(user_word)
-    #
-    # copy_words = "_".join([i.replace(" ", "_") for i in user_words.copy()])
-    # user_words = ['sounds/' + i.lower().replace(" ", "_") + '.wav' for i in user_words]
-    #
-    # concat(user_words, f"sentence/{copy_words}.wav")
-    # play_sound(copy_words, 'sentence')
+    # Marks location of multi-words in sentence
+    user_sentence = ['x' if i in string else i for i in user_sentence]
+
+    # Removes duplicate 'x' from sentence
+    user_sentence = remove_duplicates(user_sentence)
+
+    # Replaces 'x' with multi-word vocab
+    user_sentence = [string if i == 'x' else i for i in user_sentence]
+
+    # displays the translated sentence
+    display_sentence = [all_vocab[word] for word in user_sentence]
+    print(" ".join(display_sentence).capitalize())
+
+    # Formats sentence into filename for .wav
+    copy_words = "_".join([i.replace(" ", "_") for i in user_sentence.copy()])
+    user_words = ['sounds/' + i.lower().replace(" ", "_") + '.wav' for i in user_sentence]
+
+    # Create concatenated file + plays sound
+    concat(user_words, f"sentence/{copy_words}.wav")
+    play_sound(copy_words, 'sentence')
+
+
+def create_sentence():
+    """
+    input: none (user inputs a sentence)
+    output: none (creates a .wav file and plays it)
+    """
+    # Creates all vocabulary
+    all_vocab = create_all_vocab()
+
+    # Displays all vocabulary
+    show_vocab(all_vocab)
+
+    # Activates main loop
+    while True:
+        # Asks user for sentence to translate
+        user_sentence = input("\nGive me a sentence and I will translate it into Blackfoot.\n"
+                              "Type 'done' if you're done.\n").lower().replace(',', '').split()
+
+        # checks if user is done with program
+        if user_sentence[0] == 'done':
+            print("Exiting.\n")
+            break
+        else:
+            # Catches any errors
+            try:
+                helper_create_sentence(user_sentence, all_vocab)
+            except:
+                print("Seems like there was an error in your sentence.")
 
 
 def create_dict(txt_file):
@@ -103,7 +149,7 @@ def create_dict(txt_file):
     with open(txt_file) as file:
         for line in file:
             (key, value) = line.split(",")
-            vocab[key] = value.strip("\n")
+            vocab[key.lower()] = value.strip("\n").lower()
     return vocab
 
 
@@ -152,7 +198,7 @@ def test(vocab):
         test_word = random.choice(list(vocab.keys()))  # retrieves random word from vocab
         play_sound(vocab[test_word], 'sounds')  # Plays sound of the word
 
-        user_word = input(f"What is {test_word.lower()}?\n").strip()  # asks user vocab
+        user_word = input(f"What is {test_word.capitalize()}?\n").strip()  # asks user vocab
 
         # If user is correct; add to counter, else, reveal correct answer
         if user_word == vocab[test_word]:
@@ -161,15 +207,40 @@ def test(vocab):
         else:
             print(f"It actually means {vocab[test_word]}.\n")
 
-    # Gives user message depending on score
-    if num_correct == 10:
-        input("Wow! You got 10/10! A perfect score! Press <enter>\n")
-    elif num_correct == 0:
-        input("Unfortunately, you didn't get any right. Press <enter>\n")
-    else:
-        input(f"You got {num_correct}/10! Press <enter>\n")
+    # Prints message regarding user test score
+    test_score(num_correct)
 
     return num_correct
+
+
+def get_random_word(vocab):
+    # Generates random english word
+    english_word = random.choice(list(vocab.keys()))
+
+    # Gets correct word and initializes incorrect word
+    correct_word = vocab[english_word]
+
+    # Loops to ensure incorrect word is not correct word
+    while True:
+        incorrect_eng_word = random.choice(list(vocab.keys()))
+        incorrect_word = vocab[incorrect_eng_word]
+
+        if incorrect_word != correct_word:
+            break
+
+    # Stores word choices
+    words = [correct_word, incorrect_word]
+
+    # Generates the first random choice
+    choice_one = random.choice(words)
+
+    # Generates the second random choice that isn't choice one
+    while True:
+        choice_two = random.choice(words)
+        if choice_two != choice_one:
+            break
+
+    return choice_one, choice_two, english_word, correct_word
 
 
 def custom_testing(vocab):
@@ -188,40 +259,20 @@ def custom_testing(vocab):
     # Asks 10 questions
     for x in range(10):
 
-        # Generates random english word
-        english_word = random.choice(list(vocab_two.keys()))
+        # generates two unique, random words
+        choice_one, choice_two, english_word, correct_word = get_random_word(vocab_two)
 
-        # Gets correct word and initializes incorrect word
-        correct_word = vocab_two[english_word]
-
-        # Loops to ensure incorrect word is not correct word
-        while True:
-            incorrect_eng_word = random.choice(list(vocab_two.keys()))
-            incorrect_word = vocab_two[incorrect_eng_word]
-
-            if incorrect_word != correct_word:
-                break
-
-        # Stores word choices
-        words = [correct_word, incorrect_word]
-
-        # Generates the first random choice
-        choice_one = random.choice(words)
-
-        # Generates the second random choice that isn't choice one
-        while True:
-            choice_two = random.choice(words)
-            if choice_two != choice_one:
-                break
+        # asks user vocab
+        print(f"What is '{english_word.lower()}' in Blackfoot?\n"
+              f"{choice_one.title()} or {choice_two.title()}")
 
         # Plays the sound of words
         play_sound(vocab[choice_one], 'sounds')
         time.sleep(1.5)  # Gives speaker time to speak
         play_sound(vocab[choice_two], 'sounds')
 
-        # asks user vocab
-        user_word = input(f"What is '{english_word.lower()}' in Blackfoot?\n"
-                          f"{choice_one.title()} or {choice_two.title()}\n").strip().lower()
+        # takes user input
+        user_word = input().strip().lower()
 
         # Tells user if they are correct / incorrect
         if user_word == correct_word.lower():
@@ -230,13 +281,8 @@ def custom_testing(vocab):
         else:
             print("Sorry, that isn't correct.\n")
 
-    # Gives user message depending on score
-    if num_correct == 10:
-        input("Wow! You got 10/10! A perfect score! Press <enter>\n")
-    elif num_correct == 0:
-        input("Unfortunately, you didn't get any right. Press <enter>\n")
-    else:
-        input(f"You got {num_correct}/10! Press <enter>\n")
+    # Prints message regarding user test score
+    test_score(num_correct)
 
     return num_correct
 
@@ -318,6 +364,34 @@ def display_score(scene_scores, hard_scene_scores):
     for scene, score in hard_scene_scores.items():
         print(f"{scene.title()} - {score}/10")
     print("**********************\n")
+
+
+def remove_duplicates(a_list):
+    # Create an empty list to store unique elements
+    new_list = []
+
+    # Loops through original list and for each element
+    # add it to new list, if its not already there.
+    for elem in a_list:
+        if elem not in new_list:
+            new_list.append(elem)
+
+    # Return the list of unique elements
+    return new_list
+
+
+def test_score(num_correct):
+    """
+    input: number correct
+    output: none (display user score)
+    """
+    # Gives user message depending on score
+    if num_correct == 10:
+        input("Wow! You got 10/10! A perfect score! Press <enter>\n")
+    elif num_correct == 0:
+        input("Unfortunately, you didn't get any right. Press <enter>\n")
+    else:
+        input(f"You got {num_correct}/10! Press <enter>\n")
 
 
 # Initializes pygame
