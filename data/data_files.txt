@@ -1,0 +1,7 @@
+town
+restaurant
+home
+family
+greetings
+time_words
+verbs

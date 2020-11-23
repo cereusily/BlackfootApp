@@ -1,0 +1,8 @@
+Oki,Hello
+Oki napi,Hello friend
+Tsa niita’piiwa?,How are you?
+Tsikohssokopii. Kistoo?,I’m doing good. You?
+Matohkwiikii,Not too bad
+Okí,Let’s go
+Aa,Yes
+Saa,No
