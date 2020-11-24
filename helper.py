@@ -59,86 +59,6 @@ def create_all_vocab():
     return all_vocab
 
 
-def helper_create_sentence(user_sentence, all_vocab):
-    """
-    input: user inputs a sentence in english
-    output: none (creates and plays the sound)
-    """
-    # Stores prepositions
-    prepositions = [
-        'a',
-        'an',
-        'the',
-        'to',
-        'at',
-        'that',
-        'for'
-    ]
-
-    # Reverses order to English to Blackfoot
-    all_vocab = {value: key for key, value in all_vocab.items()}
-
-    # Removes prepositions from sentence
-    user_sentence = [i for i in user_sentence if i not in prepositions]
-
-    # Formats multi-word vocab in user sentence
-    string = ''
-    for word in user_sentence:
-        if word not in all_vocab and string not in all_vocab:
-            string += word + ' '
-    string = string.strip()
-
-    # Marks location of multi-words in sentence
-    user_sentence = ['x' if i in string else i for i in user_sentence]
-
-    # Removes duplicate 'x' from sentence
-    user_sentence = remove_duplicates(user_sentence)
-
-    # Replaces 'x' with multi-word vocab
-    user_sentence = [string if i == 'x' else i for i in user_sentence]
-
-    # displays the translated sentence
-    display_sentence = [all_vocab[word] for word in user_sentence]
-    print(" ".join(display_sentence).capitalize())
-
-    # Formats sentence into filename for .wav
-    copy_words = "_".join([i.replace(" ", "_") for i in user_sentence.copy()])
-    user_words = ['sounds/' + i.lower().replace(" ", "_") + '.wav' for i in user_sentence]
-
-    # Create concatenated file + plays sound
-    concat(user_words, f"sentence/{copy_words}.wav")
-    play_sound(copy_words, 'sentence')
-
-
-def create_sentence():
-    """
-    input: none (user inputs a sentence)
-    output: none (creates a .wav file and plays it)
-    """
-    # Creates all vocabulary
-    all_vocab = create_all_vocab()
-
-    # Displays all vocabulary
-    show_vocab(all_vocab)
-
-    # Activates main loop
-    while True:
-        # Asks user for sentence to translate
-        user_sentence = input("\nGive me a sentence and I will translate it into Blackfoot.\n"
-                              "Type 'done' if you're done.\n").lower().replace(',', '').split()
-
-        # checks if user is done with program
-        if user_sentence[0] == 'done':
-            print("Exiting.\n")
-            break
-        else:
-            # Catches any errors
-            try:
-                helper_create_sentence(user_sentence, all_vocab)
-            except:
-                print("Seems like there was an error in your sentence.")
-
-
 def create_dict(txt_file):
     """
     input: a text file containing string data
@@ -180,6 +100,41 @@ def learn(vocab):
 
         else:
             print("Sorry, I'm not sure I see that word around us.")
+
+
+def move(scene, user_scene):
+    """
+    input: current user scene (index) of scene array
+    output: new user scene (index) of scene array
+    """
+    # Maps out scene relative to index into dictionary
+    scene_map = dict(zip(scene, range(0, len(scene))))
+
+    # Formats list of scenes into string
+    scene_options = "".join([i.title() + "/" for i in scene])
+
+    # Main loop to ask for new scene
+    active = True
+    while active:
+        print("Where do you want to go?")
+        # Displays scene options for user + formats response
+        user_scene = input(f"{scene_options}\n").lower().strip()
+
+        # checks if user scene is in map + exits loop else tells user it's valid
+        if user_scene in scene_map:
+            user_scene = scene_map[user_scene]
+            active = False
+        else:
+            print("Sorry, that's not a valid scene.\n")
+
+    # gets the new image
+    img = cmpt120image.getImage(f"images/{scene[user_scene]}.jpg")
+
+    # displays the new image
+    cmpt120image.showImage(img, scene[user_scene])
+
+    # returns new user scene
+    return user_scene
 
 
 def test(vocab):
@@ -287,39 +242,88 @@ def custom_testing(vocab):
     return num_correct
 
 
-def move(scene, user_scene):
+def helper_create_sentence(user_sentence, all_vocab):
     """
-    input: current user scene (index) of scene array
-    output: new user scene (index) of scene array
+    input: user inputs a sentence in english
+    output: none (creates and plays the sound)
     """
-    # Maps out scene relative to index into dictionary
-    scene_map = dict(zip(scene, range(0, len(scene))))
+    # Stores prepositions
+    articles = [
+        'a',
+        'an',
+        'the',
+        'to',
+        'at',
+        'that',
+        'for'
+    ]
 
-    # Formats list of scenes into string
-    scene_options = "".join([i.title() + "/" for i in scene])
+    # Reverses order to English to Blackfoot
+    all_vocab = {value: key for key, value in all_vocab.items()}
 
-    # Main loop to ask for new scene
-    active = True
-    while active:
-        print("Where do you want to go?")
-        # Displays scene options for user + formats response
-        user_scene = input(f"{scene_options}\n").lower().strip()
+    # Removes prepositions from sentence
+    user_sentence = [i for i in user_sentence if i not in articles]
 
-        # checks if user scene is in map + exits loop else tells user it's valid
-        if user_scene in scene_map:
-            user_scene = scene_map[user_scene]
-            active = False
+    # Formats multi-word vocab in user sentence
+    strings = []
+    for word in user_sentence:
+        if word not in all_vocab:
+            strings.append(word)
+
+    # Initializes new sentence
+    new_sentence = []
+
+    # formats multi-word vocab into single string
+    while len(strings) > 1:
+        strings = [f"{strings[0]} {strings[1]}"] + strings[2:]
+        if strings[0] in all_vocab:
+            new_sentence.append(strings[0])
+            strings.remove(strings[0])
+
+    # removes multi_word remainders
+    user_sentence = [i for i in new_sentence + user_sentence if i in all_vocab]
+
+    # displays the translated sentence
+    display_sentence = [all_vocab[word] for word in user_sentence]
+    print(" ".join(display_sentence).capitalize())
+
+    # Formats sentence into filename for .wav
+    copy_words = "_".join([i.replace(" ", "_") for i in user_sentence.copy()])
+    user_words = ['sounds/' + i.lower().replace(" ", "_") + '.wav' for i in user_sentence]
+
+    # Create concatenated file + plays sound
+    concat(user_words, f"sentence/{copy_words}.wav")
+    play_sound(copy_words, 'sentence')
+
+
+def create_sentence():
+    """
+    input: none (user inputs a sentence)
+    output: none (creates a .wav file and plays it)
+    """
+    # Creates all vocabulary
+    all_vocab = create_all_vocab()
+
+    # Displays all vocabulary
+    show_vocab(all_vocab)
+
+    # Activates main loop
+    while True:
+        # Asks user for sentence to translate
+        user_sentence = input("\nGive me a sentence and I will translate it into Blackfoot.\n"
+                              "Type 'done' if you're done.\n").lower().replace(',', '').split()
+
+        # checks if user is done with program
+        if user_sentence[0] == 'done':
+            print("Exiting.\n")
+            break
         else:
-            print("Sorry, that's not a valid scene.\n")
-
-    # gets the new image
-    img = cmpt120image.getImage(f"images/{scene[user_scene]}.jpg")
-
-    # displays the new image
-    cmpt120image.showImage(img, scene[user_scene])
-
-    # returns new user scene
-    return user_scene
+            # Catches any errors
+            try:
+                helper_create_sentence(user_sentence, all_vocab)
+            except:
+                print("\nSeems like there was an error.\n"
+                      "Here's an example sentence to try: 'Tomorrow I will go to the cinema'\n")
 
 
 def play_sound(word, folder):

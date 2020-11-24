@@ -55,6 +55,7 @@ while active:
         user_scene = helper.move(scene, user_scene)
 
     elif app_mode.lower().strip() == "exit":
+        print("\nThanks for learning!")
         active = False
 
     else:
