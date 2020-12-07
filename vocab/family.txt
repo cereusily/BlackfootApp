@@ -1,0 +1,6 @@
+Ninaa,Man
+Aakii,Woman
+Saahkomaapi,Boy
+Iksisst,Mother
+Inn,Father
+Aakiikoan,Girl

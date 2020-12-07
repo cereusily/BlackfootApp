@@ -44,8 +44,8 @@ def show_vocab(all_vocab):
 
 def create_all_vocab():
     """
-       input: none
-       output: returns all vocab in a list of dictionaries
+    input: none
+    output: returns all vocab in a list of dictionaries
     """
     # Opens file and formats the naming
     filename = open("data/data_files.txt")
@@ -88,13 +88,14 @@ def learn(vocab):
     active = True
     while active:
         user_word = input("What do you want to learn "  # prompts  user for a word
-                          "the Blackfoot word for? Type 'done' to finish\n").lower().strip()
+                          "the Blackfoot word for? Type 'done' to finish\n").lower()
 
         # Check is user word is valid in vocab // checks for user quit
         if user_word in vocab:
             play_sound(user_word, 'sounds')  # Plays word from sounds
             print(vocab[user_word].title())
 
+        # Checks for exiting of program
         elif user_word == "done":
             active = False
 
@@ -151,9 +152,8 @@ def test(vocab):
     # Asks ten questions
     for x in range(10):
         test_word = random.choice(list(vocab.keys()))  # retrieves random word from vocab
-        play_sound(vocab[test_word], 'sounds')  # Plays sound of the word
-
-        user_word = input(f"What is {test_word.capitalize()}?\n").strip()  # asks user vocab
+        play_sound(format_word(vocab[test_word]), 'sounds')  # Plays sound of the word
+        user_word = input(f"What is {test_word.capitalize()}?\n").lower()  # asks user vocab
 
         # If user is correct; add to counter, else, reveal correct answer
         if user_word == vocab[test_word]:
@@ -169,6 +169,10 @@ def test(vocab):
 
 
 def get_random_word(vocab):
+    """
+    input: takes in vocab dictionary and tests user
+    output: returns 2 random Blackfoot words and the corresponding english word
+    """
     # Generates random english word
     english_word = random.choice(list(vocab.keys()))
 
@@ -201,7 +205,7 @@ def get_random_word(vocab):
 def custom_testing(vocab):
     """
     input: dictionary of vocab, Blackfoot : English
-    output: user score
+    output: returns user score
     """
     print("Okay, here's a harder test. Get ready!\n")
 
@@ -218,13 +222,13 @@ def custom_testing(vocab):
         choice_one, choice_two, english_word, correct_word = get_random_word(vocab_two)
 
         # asks user vocab
-        print(f"What is '{english_word.lower()}' in Blackfoot?\n"
+        print(f"What is '{english_word.capitalize()}' in Blackfoot?\n"
               f"{choice_one.title()} or {choice_two.title()}")
 
         # Plays the sound of words
-        play_sound(vocab[choice_one], 'sounds')
+        play_sound(format_word(vocab[choice_one]), 'sounds')
         time.sleep(1.5)  # Gives speaker time to speak
-        play_sound(vocab[choice_two], 'sounds')
+        play_sound(format_word(vocab[choice_two]), 'sounds')
 
         # takes user input
         user_word = input().strip().lower()
@@ -283,6 +287,16 @@ def helper_create_sentence(user_sentence, all_vocab):
     # removes multi_word remainders
     user_sentence = [i for i in new_sentence + user_sentence if i in all_vocab]
 
+    # Creates time words vocab sheet
+    time_words = create_dict('data/vocab/time_words.txt')
+    time_words = {value: key for key, value in time_words.items()}
+
+    # if vocab is a time word, bring to front of sentence
+    for vocab in user_sentence:
+        if vocab in time_words.keys():
+            user_sentence.remove(vocab)
+            user_sentence.insert(0, vocab)
+
     # displays the translated sentence
     display_sentence = [all_vocab[word] for word in user_sentence]
     print(" ".join(display_sentence).capitalize())
@@ -291,9 +305,13 @@ def helper_create_sentence(user_sentence, all_vocab):
     copy_words = "_".join([i.replace(" ", "_") for i in user_sentence.copy()])
     user_words = ['sounds/' + i.lower().replace(" ", "_") + '.wav' for i in user_sentence]
 
-    # Create concatenated file + plays sound
-    concat(user_words, f"sentence/{copy_words}.wav")
-    play_sound(copy_words, 'sentence')
+    try:
+        # Create concatenated file + plays sound
+        concat(user_words, f"sentence/{copy_words}.wav")
+    except:
+        print("There may have been an issue with finding the audio file.")
+    else:
+        play_sound(copy_words, 'sentence')
 
 
 def create_sentence():
@@ -311,7 +329,7 @@ def create_sentence():
     while True:
         # Asks user for sentence to translate
         user_sentence = input("\nGive me a sentence and I will translate it into Blackfoot.\n"
-                              "Type 'done' if you're done.\n").lower().replace(',', '').split()
+                              "Type 'done' if you're done.\n").lower().split(' ')
 
         # checks if user is done with program
         if user_sentence[0] == 'done':
@@ -331,7 +349,7 @@ def play_sound(word, folder):
     input: a word passed in from a function
     output: none (plays a sound)
     """
-    word = word.replace(" ", "_").lower().strip("?!,")  # Formats for .wav files
+    word = format_word(word)  # Formats for .wav files
     word_sound = pygame.mixer.Sound(f"{folder}/{word}.wav")  # Initializes file
     pygame.mixer.Sound.play(word_sound)  # Plays file
 
@@ -396,6 +414,14 @@ def test_score(num_correct):
         input("Unfortunately, you didn't get any right. Press <enter>\n")
     else:
         input(f"You got {num_correct}/10! Press <enter>\n")
+
+
+def format_word(word):
+    """
+    inputs: a word
+    output: word formatted into naming for wav file
+    """
+    return word.replace(',', '').replace('?', '').replace("'", '').replace('.', '').replace(" ", "_")
 
 
 # Initializes pygame
