@@ -5,8 +5,8 @@ import helper
 scene = [i.strip('\n') for i in open('data/scenes.txt')]
 
 # initializes scene scores as a dictionary
-scene_scores = dict(zip(scene, [0, 0, 0, 0]))
-hard_scene_scores = dict(zip(scene, [0, 0, 0, 0]))
+scene_scores = dict(zip(scene, [0, 0, 0, 0, 0]))
+hard_scene_scores = dict(zip(scene, [0, 0, 0, 0, 0]))
 
 # Initializes user scene
 user_scene = 0

@@ -244,10 +244,10 @@ def custom_testing(vocab):
 
 def helper_create_sentence(user_sentence, all_vocab):
     """
-    input: user inputs a sentence in english
+    input: user inputs a sentence in english;
     output: none (creates and plays the sound)
     """
-    # Stores prepositions
+    # Stores articles / prepositions
     articles = [
         'a',
         'an',
@@ -322,7 +322,7 @@ def create_sentence():
             try:
                 helper_create_sentence(user_sentence, all_vocab)
             except:
-                print("\nSeems like there was an error.\n"
+                print("\nSeems like there was an error. It is possible that the sound file does not exist\n"
                       "Here's an example sentence to try: 'Tomorrow I will go to the cinema'\n")
 
 
